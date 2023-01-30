@@ -1,0 +1,7 @@
+name = "hackage-index-state"
+main = "src/index.ts"
+compatibility_date = "2023-01-30"
+
+kv_namespaces = [
+  { binding = "IndexState", id = "f759c30d16824015b2e4bb6b3d66a80b", preview_id = "26df92a639b24e3a9e05561d8575ebf6" }
+]
