@@ -3,5 +3,5 @@ main = "src/index.ts"
 compatibility_date = "2023-01-30"
 
 kv_namespaces = [
-  { binding = "IndexState", id = "f759c30d16824015b2e4bb6b3d66a80b", preview_id = "26df92a639b24e3a9e05561d8575ebf6" }
+  { binding = "trailers", id = "c0ea4578e6c542e19f214cad5b5beaa7", preview_id = "c2f363e4b9c6452a955dfe4208e76e4d" }
 ]

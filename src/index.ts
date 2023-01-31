@@ -1,5 +1,5 @@
 export interface Env {
-  IndexState: KVNamespace;
+  trailers: KVNamespace;
 }
 
 async function MethodNotAllowed(method: string) {
@@ -9,16 +9,6 @@ async function MethodNotAllowed(method: string) {
       Allow: 'GET',
     },
   });
-}
-
-function base64Decode(b: string) {
-  b = atob(b);
-  const
-    length = b.length,
-    buf = new ArrayBuffer(length),
-    bufView = new Uint8Array(buf);
-  for (var i = 0; i < length; i++) { bufView[i] = b.charCodeAt(i) }
-  return buf
 }
 
 export default {
@@ -35,11 +25,11 @@ export default {
     if (index_state_str === '')
       return new Response('bla')
 
-    const value = await env.IndexState.get(index_state_str, { type: "json" });
-    if (value === null)
+    const { value, metadata } = await env.trailers.getWithMetadata(index_state_str, { type: "arrayBuffer" });
+    if (value == null)
       return new Response("index-state not found", { status: 404 })
 
-    const { prefix_size, trailer } = value;
+    const prefix_size = metadata.prefix_size;
 
     let response = await fetch('https://hackage.haskell.org/01-index.tar.gz', {
       headers: {
@@ -50,26 +40,18 @@ export default {
     if (response.status != 206)
       return new Response(`hackage says ${response.status} while requesting range 0-${prefix_size - 1}`, { status: response.status })
 
-    const trailerBlob = new Blob([base64Decode(trailer)])
+    const blob = new Blob([value])
 
-    const response_total_length = prefix_size + trailerBlob.size
+    const response_total_length = prefix_size + blob.size
 
     let { readable, writable } = new FixedLengthStream(response_total_length);
 
     if (response.body === null)
       return new Response("hackage?", { status: 500 })
 
-    console.log(response_total_length, prefix_size, trailerBlob.size)
-
-    console.log(response.headers)
-
     response.body.pipeTo(writable, { preventClose: true }).then(() => {
-      console.log("there")
-      trailerBlob.stream().pipeTo(writable);
+      blob.stream().pipeTo(writable);
     })
-
-    //await response.body.pipeTo(writable, { preventClose: true })
-    //trailerBlob.stream().pipeTo(writable);
 
     return new Response(readable);
   }
